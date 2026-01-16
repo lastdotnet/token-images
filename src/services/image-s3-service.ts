@@ -2,7 +2,7 @@ import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand, Hea
 
 // S3 client configuration - try common AWS regions
 const s3Client = new S3Client({
-    region: process.env.AWS_REGION || "eu-west-1", // Changed default from us-east-1
+    region: process.env.AWS_REGION || "ap-northeast-1",
     forcePathStyle: false, // Use virtual hosted-style URLs
     credentials: {
         accessKeyId: process.env.EULER_AWS_ACCESS_KEY || "",
@@ -10,7 +10,7 @@ const s3Client = new S3Client({
     },
 });
 
-const BUCKET_NAME = "euler-token-images";
+const BUCKET_NAME = "hypurrfi-token-imgs";
 
 // Function to get MIME type based on file extension
 export function getMimeType(extension: string): string {
