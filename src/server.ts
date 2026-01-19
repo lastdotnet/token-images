@@ -181,22 +181,25 @@ app.get("/:chainId/:address", async (c) => {
 		}
 
 		if (storedImage) {
-			return new Response(new Uint8Array(storedImage.buffer), {
+			const imageBuffer = new Uint8Array(storedImage.buffer);
+			return new Response(imageBuffer, {
 				headers: {
 					"Content-Type": storedImage.contentType,
+					"Content-Length": imageBuffer.length.toString(),
 					"Cache-Control": "public, max-age=86400",
 				},
 			});
 		}
 
 		const defaultImagePath = join(process.cwd(), "images", "default.png");
-		const defaultImageBuffer = await readFile(defaultImagePath);
+		const defaultImageBuffer = new Uint8Array(await readFile(defaultImagePath));
 		const fileExtension = defaultImagePath.split('.').pop() || "png";
 		const defaultContentType = getMimeType(fileExtension);
 
-		return new Response(new Uint8Array(defaultImageBuffer), {
+		return new Response(defaultImageBuffer, {
 			headers: {
 				"Content-Type": defaultContentType,
+				"Content-Length": defaultImageBuffer.length.toString(),
 				"Cache-Control": "public, max-age=86400",
 			},
 		});
