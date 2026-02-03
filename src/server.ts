@@ -224,11 +224,12 @@ app.notFound((c) => {
 	return c.json({ error: "Not found" }, 404);
 });
 
-const port = process.env.PORT || 4000;
+const port = Number(process.env.PORT) || 4000;
 
-console.log(`Server running on port ${port}`);
-
-export default {
+const server = Bun.serve({
 	port,
 	fetch: app.fetch,
-};
+});
+
+console.log(`🚀 Server running on port ${port}`);
+console.log(`📍 URL: ${server.url}`);
