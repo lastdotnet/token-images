@@ -1,0 +1,76 @@
+name: Linear Automation
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+      - master
+      - feat/euler-1.2
+    types: ["opened"]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+env:
+  # Linear State IDs
+  STATE_BACKLOG: "e41a6113-c418-4169-ab31-bc19c5855dcb"
+  STATE_TODO: "5e39d38c-c047-47c2-a83c-2fe85a08a701"
+  STATE_IN_PROGRESS: "36a6fa54-da2b-4df1-9bf8-cbdd0f92e37d"
+  STATE_IN_REVIEW: "c0f93ea4-b232-485d-a54b-c18793d42c2f"
+
+  # Linear Label IDs
+  LABEL_BUG: "e2e742ad-6e68-4a35-ad6b-e8727449ed25"
+  LABEL_IMPROVEMENT: "a53368e9-9be2-4c67-b4cc-83b280539314"
+  LABEL_PROTOCOL: "2665b485-152c-430c-86d7-f5753c42524f"
+
+  # Linear Project IDs
+  PROJECT_HYPURRFI: "7b67822e-7d16-453f-bfb4-95919c0adeab"
+  PROJECT_EULER_LAUNCH_V0: "a5e29975-43a0-4364-bc42-6cd4c4bbe168"
+  PROJECT_USDXL: "650fa787-569e-4ce7-a00c-661db7f8e99d"
+  PROJECT_HYPURRFI_CARD: "204ad71e-a69e-44dc-9e5d-1c046afe4e99"
+  PROJECT_PKMN: "32d26bb3-dfb7-4739-99fb-0173427df7c8"
+  PROJECT_PURRPS: "c1395543-89b2-484b-a21a-839e77f6e933"
+
+jobs:
+  find-or-create-issue:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    environment: linear-issues
+    steps:
+      # To use this repository's private action,
+      # you must check out the repository
+      - name: Checkout action repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: (STEP) Find or Create the Linear Issue on Pull Request
+        id: findOrCreateIssue
+        uses: lastdotnet/action-find-or-create-linear-issue@v1.2.0
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          linear-api-key: ${{secrets.LINEAR_API_KEY}}
+          linear-team-key: "HYP"
+          linear-created-issue-title-prefix: "[GITHUB PR #${{ github.event.pull_request.number }}] "
+          linear-created-issue-state-id: "${{ env.STATE_IN_REVIEW }}"
+          linear-issue-label-ids: "${{ env.LABEL_IMPROVEMENT }}"
+          linear-project-id: "${{ env.PROJECT_EULER_LAUNCH_V0 }}"
+      - name: Find existing Linear Issue comment
+        id: findLinearComment
+        uses: peter-evans/find-comment@v3
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: linear.app
+      - name: Create comment in PR with Linear Issue link
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.findLinearComment.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            ${{ steps.findOrCreateIssue.outputs.linear-issue-url }}
